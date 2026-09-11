@@ -5,7 +5,41 @@
 -- porque el proyecto original de Supabase se creó a mano en el
 -- dashboard y nunca se versionó. Pégalo entero en el SQL Editor
 -- de un proyecto Supabase nuevo y ejecútalo una sola vez.
+--
+-- Es seguro volver a ejecutarlo si una vez falló a medias: primero
+-- limpia cualquier resto de una ejecución anterior y luego crea todo
+-- de nuevo dentro de una única transacción (si algo falla, no se
+-- aplica nada).
 -- ============================================================
+
+-- ------------------------------------------------------------
+-- LIMPIEZA (por si una ejecución anterior falló a medias)
+-- ------------------------------------------------------------
+drop table if exists public.comentarios_showcase cascade;
+drop table if exists public.videos_showcase cascade;
+drop table if exists public.outfits cascade;
+drop table if exists public.favoritos cascade;
+drop table if exists public.pujas cascade;
+drop table if exists public.raffles cascade;
+drop table if exists public.cupones cascade;
+drop table if exists public.ofertas cascade;
+drop table if exists public.mensajes cascade;
+drop table if exists public.notificaciones cascade;
+drop table if exists public.armario_virtual cascade;
+drop table if exists public.seguidores cascade;
+drop table if exists public.resenas cascade;
+drop table if exists public.pedido_items cascade;
+drop table if exists public.pedidos cascade;
+drop table if exists public.historial_precios cascade;
+drop table if exists public.productos cascade;
+drop table if exists public.vendedores cascade;
+
+drop policy if exists "fotos_lectura_publica" on storage.objects;
+drop policy if exists "fotos_subida_autenticados" on storage.objects;
+drop policy if exists "tienda_media_lectura_publica" on storage.objects;
+drop policy if exists "tienda_media_subida_autenticados" on storage.objects;
+
+begin;
 
 create extension if not exists pgcrypto;
 
@@ -260,7 +294,7 @@ create policy "pedidos_select_comprador_o_vendedor" on public.pedidos for select
     select 1 from public.pedido_items pi
     join public.productos p on p.id = pi.id_producto
     join public.vendedores v on v.id = p.id_vendedor
-    where pi.id_pedido = id and v.id_usuario = auth.uid()
+    where pi.id_pedido = public.pedidos.id and v.id_usuario = auth.uid()
   )
 );
 create policy "pedidos_insert_propio" on public.pedidos for insert with check (id_usuario = auth.uid());
@@ -269,7 +303,7 @@ create policy "pedidos_update_vendedor" on public.pedidos for update using (
     select 1 from public.pedido_items pi
     join public.productos p on p.id = pi.id_producto
     join public.vendedores v on v.id = p.id_vendedor
-    where pi.id_pedido = id and v.id_usuario = auth.uid()
+    where pi.id_pedido = public.pedidos.id and v.id_usuario = auth.uid()
   )
 );
 
@@ -389,3 +423,5 @@ create policy "tienda_media_subida_autenticados" on storage.objects for insert w
 
 alter publication supabase_realtime add table public.mensajes;
 alter publication supabase_realtime add table public.notificaciones;
+
+commit;
