@@ -3,9 +3,13 @@ import Stripe from 'stripe';
 
 export async function POST(request: Request) {
   try {
-    // Inicializamos Stripe con tu clave secreta (en tiempo de petición, no de build)
+    // Inicializamos Stripe con tu clave secreta (en tiempo de petición, no de build).
+    // httpClient: fetch es obligatorio en Cloudflare Workers — el cliente por defecto
+    // de Stripe usa el módulo "https" de Node, que se queda colgado ahí (no hay sockets
+    // TCP reales aunque esté activado nodejs_compat).
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: '2023-10-16' as any, // Usamos la versión estable
+      httpClient: Stripe.createFetchHttpClient(),
     });
 
     const { items, email, descuento, legitCheck } = await request.json();
