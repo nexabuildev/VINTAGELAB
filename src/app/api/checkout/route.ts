@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Inicializamos Stripe con tu clave secreta
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16' as any, // Usamos la versión estable
-});
-
 export async function POST(request: Request) {
   try {
+    // Inicializamos Stripe con tu clave secreta (en tiempo de petición, no de build)
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2023-10-16' as any, // Usamos la versión estable
+    });
+
     const { items, email, descuento, legitCheck } = await request.json();
 
     // 1. Transformamos los items de tu cesta al formato que exige Stripe

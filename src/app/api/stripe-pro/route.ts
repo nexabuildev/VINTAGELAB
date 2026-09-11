@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16' as any,
-});
-
 export async function POST(request: Request) {
   try {
+    // Inicializamos Stripe con tu clave secreta (en tiempo de petición, no de build)
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2023-10-16' as any,
+    });
+
     const { email } = await request.json();
 
     const origin = request.headers.get('origin') || 'http://localhost:3000';
